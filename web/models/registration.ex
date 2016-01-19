@@ -1,10 +1,11 @@
 defmodule ElixirChess.Registration do
   import Ecto.Changeset, only: [put_change: 3]
+  alias ElixirChess.Repo
 
-  def create(changeset, repo) do
+  def create(changeset) do
     changeset
     |> put_change(:crypted_password, hashed_password(changeset.params["password"]))
-    |> repo.insert
+    |> Repo.insert
   end
 
   defp hashed_password(password) do

@@ -7,7 +7,7 @@ defmodule ElixirChess.SessionController do
   end
 
   def create(conn, %{"session" => session_params}) do
-    case Session.login(session_params, Repo) do
+    case Session.login(session_params) do
       {:ok, user} ->
         conn
         |> put_session(:current_user, user.id)

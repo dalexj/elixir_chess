@@ -11,7 +11,7 @@ defmodule ElixirChess.RegistrationController do
   def create(conn, %{"user" => user_params}) do
     changeset = User.changeset(%User{}, user_params)
 
-    case Registration.create(changeset, Repo) do
+    case Registration.create(changeset) do
       {:ok, changeset} ->
         conn
         |> put_session(:current_user, changeset.id)

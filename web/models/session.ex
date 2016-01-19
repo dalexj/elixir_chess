@@ -1,8 +1,9 @@
 defmodule ElixirChess.Session do
   alias ElixirChess.User
+  alias ElixirChess.Repo
 
-  def login(params, repo) do
-    user = repo.get_by(User, email: String.downcase(params["email"]))
+  def login(params) do
+    user = Repo.get_by(User, username: String.downcase(params["username"]))
     if authenticate(user, params["password"]) do
       {:ok, user}
     else
