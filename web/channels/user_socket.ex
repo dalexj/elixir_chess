@@ -19,9 +19,16 @@ defmodule ElixirChess.UserSocket do
   #
   # See `Phoenix.Token` documentation for examples in
   # performing token verification on connect.
-  def connect(_params, socket) do
-    {:ok, socket}
-  end
+  def connect(%{"token" => token}, socket) do
+     # max age of 1 day (86400 seconds)
+     case Phoenix.Token.verify(socket, "user", token, max_age: 86400) do
+       {:ok, user_id} ->
+         socket = assign(socket, :user, Repo.get!(User, user_id))
+         {:ok, socket}
+       {:error, _} ->
+         :error
+     end
+   end
 
   # Socket id's are topics that allow you to identify all sockets for a given user:
   #
