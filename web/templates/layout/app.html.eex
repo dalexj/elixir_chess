@@ -16,25 +16,33 @@
   </head>
 
   <body>
-    <div class="container" role="main">
-      <div class="header">
-        <ul class="nav nav-pills pull-right">
-          <li><a href="http://www.phoenixframework.org/docs">Get Started</a></li>
-          <%= if logged_in?(@conn) do %>
-            <li><%= current_user(@conn).email %></li>
-            <li><%= link "Logout", to: session_path(@conn, :delete), method: :delete %></li>
-          <% else %>
-            <li><%= link "Login",    to: "/login" %></li>
-            <li><%= link "Register", to: registration_path(@conn, :new) %></li>
-          <% end %>
-        </ul>
-        <span class="logo"></span>
+    <div class="container">
+      <div class="navbar navbar-default">
+        <div class="container-fluid">
+          <div class="navbar-header ">
+            <%= link "Phoenix Chess", to: "/", class: "navbar-brand" %>
+          </div>
+          <div class="">
+
+          </div>
+          <ul class="nav navbar-nav navbar-right">
+            <%= if logged_in?(@conn) do %>
+              <li><%= link current_user(@conn).username, to: "/ " %></li>
+              <li><%= link "Logout", to: session_path(@conn, :delete) %></li>
+            <% else %>
+              <li><%= link "Login",    to: "/login" %></li>
+              <li><%= link "Register", to: registration_path(@conn, :new) %></li>
+            <% end %>
+          </ul>
+        </div>
       </div>
 
       <p class="alert alert-info" role="alert"><%= get_flash(@conn, :info) %></p>
       <p class="alert alert-danger" role="alert"><%= get_flash(@conn, :error) %></p>
 
-      <%= @inner %>
+      <div>
+        <%= @inner %>
+      </div>
 
     </div> <!-- /container -->
     <script src="<%= static_path(@conn, "/js/app.js") %>"></script>

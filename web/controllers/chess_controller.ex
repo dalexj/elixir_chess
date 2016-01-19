@@ -1,11 +1,11 @@
-defmodule ElixirChess.PageController do
+defmodule ElixirChess.ChessController do
   use ElixirChess.Web, :controller
 
   def index(conn, _params) do
     if logged_in?(conn) do
-      redirect conn, to: "/chess"
-    else
       render conn, "index.html"
+    else
+      redirect conn, to: "/"
     end
   end
 end

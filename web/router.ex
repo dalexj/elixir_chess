@@ -19,9 +19,12 @@ defmodule ElixirChess.Router do
     get "/", PageController, :index
 
     resources "/registrations", RegistrationController, only: [:new, :create]
-    get    "/login",  SessionController, :new
-    post   "/login",  SessionController, :create
-    delete "/logout", SessionController, :delete
+
+    get  "/login",  SessionController, :new
+    post "/login",  SessionController, :create
+    get  "/logout", SessionController, :delete
+
+    get "/chess", ChessController, :index
   end
 
   # Other scopes may use custom stacks.

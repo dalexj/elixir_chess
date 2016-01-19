@@ -24,10 +24,11 @@ defmodule ElixirChess.User do
   def changeset(model, params \\ :empty) do
     model
     |> cast(params, @required_fields, @optional_fields)
+    |> update_change(:username, &String.downcase/1)
     |> unique_constraint(:email)
     |> unique_constraint(:username)
     |> validate_format(:email, ~r/@/)
-    |> validate_format(:username, ~r/\A[a-z0-9]+\z/i, message: "must only contain letters and numbers")
+    |> validate_format(:username, ~r/\A[a-z0-9]+\z/, message: "must only contain letters and numbers")
     |> validate_length(:password, min: 5)
     |> validate_confirmation(:password)
   end

@@ -34,6 +34,7 @@ defmodule ElixirChess.Web do
       import Ecto.Query, only: [from: 1, from: 2]
 
       import ElixirChess.Router.Helpers
+      import ElixirChess.Session, only: [logged_in?: 1, current_user: 1]
     end
   end
 
