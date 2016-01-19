@@ -1,1 +1,13 @@
 <h1>chess page</h1>
+
+<h2>Current Users</h2>
+<ul id="current-users">
+
+</ul>
+
+
+<script type="text/javascript">
+$(window).load(function() {
+  window.connectToChess();
+});
+</script>

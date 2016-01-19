@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="">
     <meta name="author" content="">
-    <% if logged_in?(@conn) do %>
+    <%= if logged_in?(@conn) do %>
       <%= tag :meta, name: "channel_token",
                      content: Phoenix.Token.sign(@conn, "user", current_user(@conn).id) %>
     <% end %>
@@ -21,9 +21,6 @@
         <div class="container-fluid">
           <div class="navbar-header ">
             <%= link "Phoenix Chess", to: "/", class: "navbar-brand" %>
-          </div>
-          <div class="">
-
           </div>
           <ul class="nav navbar-nav navbar-right">
             <%= if logged_in?(@conn) do %>

@@ -1,5 +1,6 @@
 defmodule ElixirChess.User do
   use ElixirChess.Web, :model
+  # @derive {Poison.Encoder, only: [:username]}
 
   schema "users" do
     field :email, :string
