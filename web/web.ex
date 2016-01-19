@@ -28,6 +28,7 @@ defmodule ElixirChess.Web do
   def controller do
     quote do
       use Phoenix.Controller
+      plug :put_current_user
 
       alias ElixirChess.Repo
       import Ecto.Model
@@ -35,6 +36,10 @@ defmodule ElixirChess.Web do
 
       import ElixirChess.Router.Helpers
       import ElixirChess.Session, only: [logged_in?: 1, current_user: 1]
+      def put_current_user(conn, _params) do
+        conn
+        |> Plug.Conn.assign(:current_user, ElixirChess.Session.current_user(conn))
+      end
     end
   end
 
@@ -49,7 +54,6 @@ defmodule ElixirChess.Web do
       use Phoenix.HTML
 
       import ElixirChess.Router.Helpers
-      import ElixirChess.Session, only: [current_user: 1, logged_in?: 1]
     end
   end
 

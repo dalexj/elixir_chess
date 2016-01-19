@@ -6,9 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="">
     <meta name="author" content="">
-    <%= if logged_in?(@conn) do %>
+    <%= if @current_user do %>
       <%= tag :meta, name: "channel_token",
-                     content: Phoenix.Token.sign(@conn, "user", current_user(@conn).id) %>
+                     content: Phoenix.Token.sign(@conn, "user", @current_user.id) %>
     <% end %>
     <title>Hello Phoenix!</title>
     <link rel="stylesheet" href="<%= static_path(@conn, "/css/app.css") %>">
@@ -23,8 +23,8 @@
             <%= link "Phoenix Chess", to: "/", class: "navbar-brand" %>
           </div>
           <ul class="nav navbar-nav navbar-right">
-            <%= if logged_in?(@conn) do %>
-              <li><%= link current_user(@conn).username, to: "/ " %></li>
+            <%= if @current_user do %>
+              <li><%= link @current_user.username, to: "/" %></li>
               <li><%= link "Logout", to: session_path(@conn, :delete) %></li>
             <% else %>
               <li><%= link "Login",    to: "/login" %></li>
