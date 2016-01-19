@@ -14,7 +14,7 @@ defmodule ElixirChess.RegistrationController do
     case Registration.create(changeset, Repo) do
       {:ok, changeset} ->
         conn
-        |> put_session(:current_user, user.id)
+        |> put_session(:current_user, changeset.id)
         |> put_flash(:info, "Your account was created")
         |> redirect(to: "/")
       {:error, changeset} ->
