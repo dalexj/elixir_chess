@@ -2,7 +2,7 @@ defmodule ElixirChess.ChessChannel do
   use ElixirChess.Web, :channel
   alias ElixirChess.ChannelMonitor
 
-  def join("chess:lobby", payload, socket) do
+  def join("chess:lobby", _payload, socket) do
     current_user = socket.assigns.current_user
     send self, {:after_join, ChannelMonitor.user_joined("lobby", current_user)["lobby"]}
     {:ok, %{username: current_user.username}, socket}
@@ -16,15 +16,15 @@ defmodule ElixirChess.ChessChannel do
     :ok
   end
 
-  def handle_in("chess_invite", payload, socket) do
-    broadcast socket, "chess_invite", payload
+  def handle_in("chess_invite", %{"username" => username}, socket) do
+    broadcast socket, "chess_invite", %{"username" => username, "sender" => socket.assigns.current_user.username }
     {:noreply, socket}
   end
 
   intercept ["chess_invite"]
-  def handle_out("chess_invite", %{"username" => username}, socket) do
+  def handle_out("chess_invite", %{"username" => username, "sender" => sender}, socket) do
     if socket.assigns.current_user.username == username do
-      push socket, "chess_invite", %{ message: "hello there #{username}"}
+      push socket, "chess_invite", %{ username: sender}
     end
     {:noreply, socket}
   end

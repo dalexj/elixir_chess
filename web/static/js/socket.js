@@ -1,13 +1,14 @@
 /* jshint esnext: true */
 import {Socket} from 'deps/phoenix/web/static/js/phoenix';
 
-ParentComponent = React.createClass({
+const ParentComponent = React.createClass({
   getInitialState() {
     return {
       myUsername: null,
       users: [],
       channel: null,
-      invite: '',
+      invites: [],
+      gameChannelsConnected: [],
     };
   },
 
@@ -29,13 +30,13 @@ ParentComponent = React.createClass({
       component.setState({ users: payload.users });
     });
     channel.on('chess_invite', function(payload) {
-      component.setState({ invite: payload.message });
+      component.setState({ invites: component.state.invites.concat(payload.username) });
     });
 
     channel.join().receive('ok', function(response) {
       component.setState({myUsername: response.username});
     });
-    this.setState({channel: channel});
+    this.setState({channel: channel, socket: socket});
   },
   render() {
     const component = this;
@@ -47,13 +48,21 @@ ParentComponent = React.createClass({
             return component.renderUser(user);
           })}
         </ul>
-        <h2>{this.state.invite}</h2>
       </div>
     );
   },
   renderUser(user) {
     if(user === this.state.myUsername) {
       return <li>{user}</li>;
+    } else if(this.state.invites.indexOf(user) > -1) {
+      return (
+        <li>
+          {user}
+          <div style={{marginLeft: "20px"}} className="btn btn-default" onClick={this.acceptInvite.bind(this, user)}>
+            Accept Invite
+          </div>
+        </li>
+      );
     } else {
       return (
         <li>
@@ -65,8 +74,22 @@ ParentComponent = React.createClass({
       );
     }
   },
+  acceptInvite(name) {
+    this.joinGameWith(name);
+  },
+  getGameRoomName(name) {
+    return 'chess:game:' + [this.state.myUsername, name].sort().join('-');
+  },
+  joinGameWith(name) {
+    let gameChannelsConnected = this.state.gameChannelsConnected;
+    const channel = this.state.socket.channel(this.getGameRoomName(name));
+    channel.join();
+    gameChannelsConnected = gameChannelsConnected.concat(channel);
+    this.setState({gameChannelsConnected: gameChannelsConnected});
+  },
   challengeUser(name) {
     this.state.channel.push('chess_invite', {username: name});
+    this.joinGameWith(name);
   },
 });
 
