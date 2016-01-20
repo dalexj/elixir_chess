@@ -3,13 +3,9 @@ defmodule ElixirChess.ChessChannel do
   alias ElixirChess.ChannelMonitor
 
   def join("chess:lobby", payload, socket) do
-    if authorized?(payload) do
-      current_user = socket.assigns.current_user
-      send self, {:after_join, ChannelMonitor.user_joined("lobby", current_user)["lobby"]}
-      {:ok, socket}
-    else
-      {:error, %{reason: "unauthorized"}}
-    end
+    current_user = socket.assigns.current_user
+    send self, {:after_join, ChannelMonitor.user_joined("lobby", current_user)["lobby"]}
+    {:ok, %{username: current_user.username}, socket}
   end
 
   def terminate(_reason, socket) do
@@ -20,8 +16,17 @@ defmodule ElixirChess.ChessChannel do
     :ok
   end
 
-  defp authorized?(_payload) do
-    true
+  def handle_in("chess_invite", payload, socket) do
+    broadcast socket, "chess_invite", payload
+    {:noreply, socket}
+  end
+
+  intercept ["chess_invite"]
+  def handle_out("chess_invite", %{"username" => username}, socket) do
+    if socket.assigns.current_user.username == username do
+      push socket, "chess_invite", %{ message: "hello there #{username}"}
+    end
+    {:noreply, socket}
   end
 
   def handle_info({:after_join, users}, socket) do

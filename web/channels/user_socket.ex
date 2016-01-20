@@ -4,7 +4,8 @@ defmodule ElixirChess.UserSocket do
   alias ElixirChess.User
 
   ## Channels
-  channel "chess:*", ElixirChess.ChessChannel
+  channel "chess:lobby", ElixirChess.ChessChannel
+  channel "chess:game:*", ElixirChess.ChessGameChannel
 
   ## Transports
   transport :websocket, Phoenix.Transports.WebSocket
