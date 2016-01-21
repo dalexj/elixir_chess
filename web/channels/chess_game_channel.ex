@@ -6,6 +6,7 @@ defmodule ElixirChess.ChessGameChannel do
     if authorized?(usernames, socket) do
       current_user = socket.assigns.current_user
       send self, {:after_join, ChannelMonitor.user_joined(room_name, current_user)[room_name]}
+      socket = assign(socket, :games_joined, [room_name | socket.assigns[:games_joined] || []])
       IO.puts "#{current_user.username} has joined #{room_name}"
       {:ok, socket}
     else
@@ -20,6 +21,14 @@ defmodule ElixirChess.ChessGameChannel do
   def handle_out(event, payload, socket) do
     push socket, event, payload
     {:noreply, socket}
+  end
+
+  def terminate(_reason, socket) do
+    user_id = socket.assigns.current_user.id
+    Enum.each socket.assigns.games_joined, fn(channel) ->
+      ChannelMonitor.user_left(channel, user_id)[channel]
+    end
+    :ok
   end
 
   def handle_info({:after_join, users}, socket) do

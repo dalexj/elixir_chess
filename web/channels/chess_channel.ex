@@ -12,7 +12,6 @@ defmodule ElixirChess.ChessChannel do
     user_id = socket.assigns.current_user.id
     users = ChannelMonitor.user_left("lobby", user_id)["lobby"]
     broadcast! socket, "lobby_update", %{users: get_usernames(users)}
-
     :ok
   end
 
