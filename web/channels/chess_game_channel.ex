@@ -1,6 +1,8 @@
 defmodule ElixirChess.ChessGameChannel do
   use ElixirChess.Web, :channel
   alias ElixirChess.ChannelMonitor
+  alias ElixirChess.ChessGame
+  alias ElixirChess.Repo
 
   def join(room_name = "chess:game:" <> usernames, _payload, socket) do
     if authorized?(usernames, socket) do
@@ -23,7 +25,7 @@ defmodule ElixirChess.ChessGameChannel do
     {:noreply, socket}
   end
 
-  def terminate(reason, socket) do
+  def terminate(_reason, socket) do
     user_id = socket.assigns.current_user.id
     channel_name = socket.assigns.channel_name
     ChannelMonitor.user_left(channel_name, user_id)
@@ -32,6 +34,8 @@ defmodule ElixirChess.ChessGameChannel do
 
   def handle_info({:after_join, users}, socket) do
     if length(users) == 2 do
+      [user1, user2] = Enum.shuffle users # randomize white/black
+      Repo.insert ChessGame.changeset(%ChessGame{}, %{black_player_id: user1.id, white_player_id: user2.id})
       broadcast! socket, "game_start", %{message: "testing"}
     end
     {:noreply, socket}

@@ -33,6 +33,7 @@ defmodule ElixirChess.ChessChannel do
     {:noreply, socket}
   end
 
+  defp get_usernames(nil), do: []
   defp get_usernames(users) do
     Enum.map users, &(&1.username)
   end
