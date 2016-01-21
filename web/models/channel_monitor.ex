@@ -51,6 +51,10 @@
     new_state = state
       |> Map.update!(channel, fn(_) -> new_users end)
 
+    if new_users == [] do
+      new_state = Map.delete new_state, channel
+    end
+
     {:reply, new_state, new_state}
   end
 end

@@ -29,6 +29,7 @@ const ParentComponent = React.createClass({
     const channel = socket.channel('chess:lobby');
     channel.on('lobby_update', function(payload) {
       component.setState({ users: payload.users });
+      component.disconnectFromOfflineUsers();
     });
     channel.on('chess_invite', function(payload) {
       component.setState({ invites: component.state.invites.concat(payload.username) });
@@ -152,6 +153,18 @@ const ParentComponent = React.createClass({
     return _.includes(this.state.gameChannelsConnected.map(function(channel) {
       return channel.opponent;
     }), user);
+  },
+  disconnectFromOfflineUsers() {
+    const component = this;
+    const invites = _.intersection(this.state.invites, this.state.users);
+    const gameChannelsConnected = this.state.gameChannelsConnected.filter(function(channel) {
+      if(!channel.started && !_.includes(component.state.users, channel.opponent)) {
+        channel.channel.leave();
+        return false;
+      }
+      return true;
+    });
+    this.setState({invites: invites, gameChannelsConnected: gameChannelsConnected});
   },
 });
 

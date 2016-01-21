@@ -26,7 +26,7 @@ defmodule ElixirChess.ChessGameChannel do
   def terminate(reason, socket) do
     user_id = socket.assigns.current_user.id
     channel_name = socket.assigns.channel_name
-    ChannelMonitor.user_left(channel_name, user_id)[channel_name]
+    ChannelMonitor.user_left(channel_name, user_id)
     :ok
   end
 
