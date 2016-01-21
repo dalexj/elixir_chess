@@ -3,7 +3,6 @@ defmodule ElixirChess.User do
   # @derive {Poison.Encoder, only: [:username]}
 
   schema "users" do
-    field :email, :string
     field :crypted_password, :string
     field :username, :string
 
@@ -13,7 +12,7 @@ defmodule ElixirChess.User do
     timestamps
   end
 
-  @required_fields ~w(email password password_confirmation username)
+  @required_fields ~w(password password_confirmation username)
   @optional_fields ~w()
 
   @doc """
@@ -26,9 +25,7 @@ defmodule ElixirChess.User do
     model
     |> cast(params, @required_fields, @optional_fields)
     |> update_change(:username, &String.downcase/1)
-    |> unique_constraint(:email)
     |> unique_constraint(:username)
-    |> validate_format(:email, ~r/@/)
     |> validate_format(:username, ~r/\A[a-z0-9]+\z/, message: "must only contain letters and numbers")
     |> validate_length(:password, min: 5)
     |> validate_confirmation(:password)
