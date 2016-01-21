@@ -45,13 +45,12 @@ const ParentComponent = React.createClass({
     return(
       <div>
         <h2>Current Users</h2>
-        {JSON.stringify(this.state.invites)}
         <ul>
           {this.state.users.map(function(user) {
             return component.renderUser(user);
           })}
         </ul>
-        <h2>{"Channels I'm in"}</h2>
+        <h2>Games</h2>
         <ul>
           {this.state.gameChannelsConnected.map(function(channel) {
             return component.renderChannel(channel);
@@ -61,10 +60,16 @@ const ParentComponent = React.createClass({
     );
   },
   renderChannel(channel) {
-    if(channel.over && _.includes(this.state.invites, channel.opponent)) {
+    if(channel.archived) {
       return (
         <li>
-          {channel.topic} - Game over
+          Game with {channel.opponent} - Archived
+        </li>
+      );
+    } else if(channel.over && _.includes(this.state.invites, channel.opponent)) {
+      return (
+        <li>
+          Game with {channel.opponent} - Game over
           <div className="btn btn-default" onClick={this.acceptInvite.bind(this, channel.opponent)}>
             Accept Rematch
           </div>
@@ -73,7 +78,7 @@ const ParentComponent = React.createClass({
     } else if(channel.over) {
       return (
         <li>
-          {channel.topic} - Game over
+          Game with {channel.opponent} - Game over
           <div className="btn btn-default" onClick={this.challengeUser.bind(this, channel.opponent)}>
             Rematch
           </div>
@@ -82,14 +87,14 @@ const ParentComponent = React.createClass({
     } else if(channel.started) {
       return (
         <li>
-          {channel.topic}
+          Game with {channel.opponent}
           <div className="btn btn-default" onClick={this.endgame.bind(this, channel.channel)}>
             End the game
           </div>
         </li>
       );
     }
-    return <li>{channel.topic}</li>;
+    return <li>Game with {channel.opponent} - Pending invitation</li>;
   },
   renderUser(user) {
     if(user === this.state.myUsername) {
@@ -127,7 +132,20 @@ const ParentComponent = React.createClass({
     let gameChannelsConnected = this.state.gameChannelsConnected;
     const channel = this.state.socket.channel(this.getGameRoomName(name));
     channel.join();
-    gameChannelsConnected = gameChannelsConnected.concat({channel: channel, topic: channel.topic, started: false, over: false, opponent: name});
+    gameChannelsConnected.forEach(function(chan) {
+      if(chan.opponent === name) {
+        chan.archived = true;
+      }
+    });
+    gameChannelsConnected = gameChannelsConnected.concat({
+      topic:    channel.topic,
+      channel:  channel,
+      opponent: name,
+
+      over: false,
+      started: false,
+      archived: false,
+    });
     channel.on('game_start', function(payload) {
       _.find(component.state.gameChannelsConnected, {channel: channel}).started = true;
       component.setState();
