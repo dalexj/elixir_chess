@@ -44,6 +44,7 @@ const ParentComponent = React.createClass({
     const component = this;
     return(
       <div>
+        <div id="board" style={{width: "400px"}}></div>
         <h2>Current Users</h2>
         <ul>
           {this.state.users.map(function(user) {
@@ -186,5 +187,12 @@ const ParentComponent = React.createClass({
   },
 });
 
+
+// data = things.split(',').reduce(function(pieces, data) {
+//   var split = data.split(':');
+//   pieces[split[0]] = split[1];
+//   return pieces;
+// }, {});
+// ChessBoard('div-id', data);
 
 export default ParentComponent;
