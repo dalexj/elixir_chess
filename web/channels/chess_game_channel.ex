@@ -36,7 +36,7 @@ defmodule ElixirChess.ChessGameChannel do
     if length(users) == 2 do
       [user1, user2] = Enum.shuffle users # randomize white/black
       Repo.insert ChessGame.changeset(%ChessGame{}, %{black_player_id: user1.id, white_player_id: user2.id})
-      broadcast! socket, "game_start", %{message: "testing"}
+      broadcast! socket, "game_start", %{user1.username => "black", user2.username => "white"}
     end
     {:noreply, socket}
   end

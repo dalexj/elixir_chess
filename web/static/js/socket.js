@@ -1,6 +1,31 @@
 /* jshint esnext: true */
 import {Socket} from 'deps/phoenix/web/static/js/phoenix';
 
+const startingBoardState = 'a8:bR,b8:bN,c8:bB,d8:bQ,e8:bK,f8:bB,g8:bN,h8:bR,a7:bP,b7:bP,c7:bP,d7:bP,e7:bP,f7:bP,g7:bP,h7:bP,a2:wP,b2:wP,c2:wP,d2:wP,e2:wP,f2:wP,g2:wP,h2:wP,a1:wR,b1:wN,c1:wB,d1:wQ,e1:wK,f1:wB,g1:wN,h1:wR';
+
+let BoardHelper = {
+  init(boardState) {
+    this.board = ChessBoard('chessboard', {
+      pieceTheme: 'images/chesspieces/wikipedia/{piece}.png',
+      position: this.parseBoardState(startingBoardState),
+      draggable: true,
+      onChange: function(a,b) {
+        // find the move that was made and send it to the server
+      }
+    });
+  },
+  parseBoardState(boardState) {
+    return boardState.split(',').reduce(function(pieces, data) {
+      var split = data.split(':');
+      pieces[split[0]] = split[1];
+      return pieces;
+    }, {});
+  },
+  flip() {
+    this.board.flip();
+  },
+};
+
 const ChessGame = React.createClass({
   render() {
     const channel = this.props.channel;
@@ -63,15 +88,6 @@ const ParentComponent = React.createClass({
   },
 
   componentDidMount() {
-    ChessBoard('chessboard', 'a8:bR,b8:bN,c8:bB,d8:bQ,e8:bK,f8:bB,g8:bN,h8:bR,a7:bP,b7:bP,c7:bP,d7:bP,e7:bP,f7:bP,g7:bP,h7:bP,a2:wP,b2:wP,c2:wP,d2:wP,e2:wP,f2:wP,g2:wP,h2:wP,a1:wR,b1:wN,c1:wB,d1:wQ,e1:wK,f1:wB,g1:wN,h1:wR'.split(',').reduce(function(pieces, data) {
-      var split = data.split(':');
-      pieces.position[split[0]] = split[1];
-      return pieces;
-    }, {
-      pieceTheme: 'images/chesspieces/wikipedia/{piece}.png',
-      position: {},
-      draggable: true
-    }));
     const component = this;
     if(!this.getUserToken()) {
       console.log('not logged in');
@@ -92,6 +108,7 @@ const ParentComponent = React.createClass({
     channel.join().receive('ok', function(response) {
       component.setState({myUsername: response.username});
     });
+    BoardHelper.init();
     this.setState({channel: channel, socket: socket});
   },
   render() {
@@ -205,9 +222,15 @@ const ParentComponent = React.createClass({
       over: false,
       started: false,
       archived: false,
+      color: 'white',
     });
     channel.on('game_start', function(payload) {
-      _.find(component.state.gameChannelsConnected, {channel: channel}).started = true;
+      const chan = _.find(component.state.gameChannelsConnected, {channel: channel});
+      chan.started = true;
+      chan.color = payload[component.state.myUsername];
+      if(chan.color === 'black') {
+        BoardHelper.flip();
+      }
       component.setState();
     });
     channel.on('game_over', function(payload) {
