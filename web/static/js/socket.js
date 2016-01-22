@@ -1,6 +1,51 @@
 /* jshint esnext: true */
 import {Socket} from 'deps/phoenix/web/static/js/phoenix';
 
+const ChessGame = React.createClass({
+  render() {
+    const channel = this.props.channel;
+    return (
+      <div>
+        <h1>hello world</h1>
+        <div id="chessboard" style={{ width: "500px"}}></div>
+      </div>
+    );
+    // if(channel.archived) {
+    //   return (
+    //       Game with {channel.opponent} - Archived
+    //   );
+    // } else if(channel.over && _.includes(this.state.invites, channel.opponent)) {
+    //   return (
+    //     <li>
+    //       Game with {channel.opponent} - Game over
+    //       <div className="btn btn-default" onClick={this.acceptInvite.bind(this, channel.opponent)}>
+    //         Accept Rematch
+    //       </div>
+    //     </li>
+    //   );
+    // } else if(channel.over) {
+    //   return (
+    //     <li>
+    //       Game with {channel.opponent} - Game over
+    //       <div className="btn btn-default" onClick={this.challengeUser.bind(this, channel.opponent)}>
+    //         Rematch
+    //       </div>
+    //     </li>
+    //   );
+    // } else if(channel.started) {
+    //   return (
+    //     <li>
+    //       Game with {channel.opponent}
+    //       <div className="btn btn-default" onClick={this.endgame.bind(this, channel.channel)}>
+    //         End the game
+    //       </div>
+    //     </li>
+    //   );
+    // }
+    // return <li>Game with {channel.opponent} - Pending invitation</li>;
+  },
+});
+
 const ParentComponent = React.createClass({
   getInitialState() {
     return {
@@ -18,6 +63,15 @@ const ParentComponent = React.createClass({
   },
 
   componentDidMount() {
+    ChessBoard('chessboard', 'a8:bR,b8:bN,c8:bB,d8:bQ,e8:bK,f8:bB,g8:bN,h8:bR,a7:bP,b7:bP,c7:bP,d7:bP,e7:bP,f7:bP,g7:bP,h7:bP,a2:wP,b2:wP,c2:wP,d2:wP,e2:wP,f2:wP,g2:wP,h2:wP,a1:wR,b1:wN,c1:wB,d1:wQ,e1:wK,f1:wB,g1:wN,h1:wR'.split(',').reduce(function(pieces, data) {
+      var split = data.split(':');
+      pieces.position[split[0]] = split[1];
+      return pieces;
+    }, {
+      pieceTheme: 'images/chesspieces/wikipedia/{piece}.png',
+      position: {},
+      draggable: true
+    }));
     const component = this;
     if(!this.getUserToken()) {
       console.log('not logged in');
@@ -44,19 +98,24 @@ const ParentComponent = React.createClass({
     const component = this;
     return(
       <div>
-        <div id="board" style={{width: "400px"}}></div>
-        <h2>Current Users</h2>
-        <ul>
-          {this.state.users.map(function(user) {
-            return component.renderUser(user);
-          })}
-        </ul>
-        <h2>Games</h2>
-        <ul>
-          {this.state.gameChannelsConnected.map(function(channel) {
-            return component.renderChannel(channel);
-          })}
-        </ul>
+        <div className="col-md-4">
+          <h2>Current Users</h2>
+          <ul>
+            {this.state.users.map(function(user) {
+              return component.renderUser(user);
+            })}
+          </ul>
+          <h2>Games</h2>
+          <ul>
+            {this.state.gameChannelsConnected.map(function(channel) {
+              return component.renderChannel(channel);
+            })}
+          </ul>
+        </div>
+        <div className="col-md-8">
+          <ChessGame channel={this.state.currentChannel} />
+        </div>
+
       </div>
     );
   },
@@ -186,13 +245,5 @@ const ParentComponent = React.createClass({
     this.setState({invites: invites, gameChannelsConnected: gameChannelsConnected});
   },
 });
-
-
-// data = things.split(',').reduce(function(pieces, data) {
-//   var split = data.split(':');
-//   pieces[split[0]] = split[1];
-//   return pieces;
-// }, {});
-// ChessBoard('div-id', data);
 
 export default ParentComponent;
