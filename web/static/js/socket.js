@@ -9,10 +9,24 @@ let BoardHelper = {
       pieceTheme: 'images/chesspieces/wikipedia/{piece}.png',
       position: this.parseBoardState(startingBoardState),
       draggable: true,
-      onChange: function(a,b) {
+      onChange: function(board1, board2) {
         // find the move that was made and send it to the server
+        var move = _.union(_.keys(board1), _.keys(board2)) .filter(function(key) {
+          return board1[key] !== board2[key];
+        }).sort(function(square1, square2) {
+          if(board1[square1] && board1[square1] === board2[square2]) {
+            return -1;
+          } else if(board1[square2] && board1[square2] === board2[square1]) {
+            return 1;
+          }
+        }).join('-');
+        console.log(move);
+        return false;
       }
     });
+  },
+  setState() {
+    debugger;
   },
   parseBoardState(boardState) {
     return boardState.split(',').reduce(function(pieces, data) {
@@ -25,6 +39,8 @@ let BoardHelper = {
     this.board.flip();
   },
 };
+
+window.BoardHelper = BoardHelper;
 
 const ChessGame = React.createClass({
   render() {

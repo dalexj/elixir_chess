@@ -15,6 +15,11 @@ defmodule ElixirChess.ChessGameChannel do
     end
   end
 
+  def handle_in("make_move", payload, socket) do
+    IO.inspect(payload)
+    {:noreply, socket}
+  end
+
   def handle_in("endgame", _payload, socket) do
     broadcast! socket, "game_over", %{message: "testing"}
     {:noreply, socket}
@@ -36,7 +41,10 @@ defmodule ElixirChess.ChessGameChannel do
     if length(users) == 2 do
       [user1, user2] = Enum.shuffle users # randomize white/black
       Repo.insert ChessGame.changeset(%ChessGame{}, %{black_player_id: user1.id, white_player_id: user2.id})
-      broadcast! socket, "game_start", %{user1.username => "black", user2.username => "white"}
+      payload = %{}
+        |> Map.put(user1.username, "black")
+        |> Map.put(user2.username, "white")
+      broadcast! socket, "game_start", payload
     end
     {:noreply, socket}
   end
