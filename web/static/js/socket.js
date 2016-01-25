@@ -3,13 +3,19 @@ import {Socket} from 'deps/phoenix/web/static/js/phoenix';
 
 const startingBoardState = 'a8:bR,b8:bN,c8:bB,d8:bQ,e8:bK,f8:bB,g8:bN,h8:bR,a7:bP,b7:bP,c7:bP,d7:bP,e7:bP,f7:bP,g7:bP,h7:bP,a2:wP,b2:wP,c2:wP,d2:wP,e2:wP,f2:wP,g2:wP,h2:wP,a1:wR,b1:wN,c1:wB,d1:wQ,e1:wK,f1:wB,g1:wN,h1:wR';
 
+let itWasMeMoving = false;
 let BoardHelper = {
-  init(boardState) {
+  init(opts) {
     this.board = ChessBoard('chessboard', {
       pieceTheme: 'images/chesspieces/wikipedia/{piece}.png',
       position: this.parseBoardState(startingBoardState),
       draggable: true,
       onChange: function(board1, board2) {
+        if(itWasMeMoving) {
+          itWasMeMoving = false;
+          return;
+        }
+        itWasMeMoving = true;
         // find the move that was made and send it to the server
         var move = _.union(_.keys(board1), _.keys(board2)) .filter(function(key) {
           return board1[key] !== board2[key];
@@ -20,13 +26,16 @@ let BoardHelper = {
             return 1;
           }
         }).join('-');
+
         console.log(move);
-        return false;
+        if(opts.onMove) {
+          opts.onMove(move);
+        }
       }
     });
   },
-  setState() {
-    debugger;
+  setPosition(position) {
+    this.board.setPosition(position);
   },
   parseBoardState(boardState) {
     return boardState.split(',').reduce(function(pieces, data) {
@@ -124,7 +133,11 @@ const ParentComponent = React.createClass({
     channel.join().receive('ok', function(response) {
       component.setState({myUsername: response.username});
     });
-    BoardHelper.init();
+    BoardHelper.init({
+      onMove(move) {
+        component.state.gameChannelsConnected[0].channel.push('make_move', move);
+      },
+    });
     this.setState({channel: channel, socket: socket});
   },
   render() {
