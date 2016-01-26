@@ -3,6 +3,8 @@ defmodule ElixirChess.ChessGameChannel do
   alias ElixirChess.ChannelMonitor
   alias ElixirChess.ChessGame
   alias ElixirChess.Repo
+  alias ElixirChess.User
+  import Ecto.Query, only: [from: 2]
 
   def join(room_name = "chess:game:" <> usernames, _payload, socket) do
     if authorized?(usernames, socket) do
@@ -16,7 +18,13 @@ defmodule ElixirChess.ChessGameChannel do
   end
 
   def handle_in("make_move", payload, socket) do
-    IO.inspect(payload)
+    game = find_game_from_channel_name(socket.assigns.channel_name)
+    moves = add_move(game.move_history, payload["move"])
+    {:ok, updated_game} = game
+      |> ChessGame.changeset(%{move_history: moves})
+      |> Repo.update
+    current_board = ChessGame.from_history updated_game.move_history
+    broadcast! socket, "game_update", %{current_board: current_board}
     {:noreply, socket}
   end
 
@@ -34,6 +42,7 @@ defmodule ElixirChess.ChessGameChannel do
     user_id = socket.assigns.current_user.id
     channel_name = socket.assigns.channel_name
     ChannelMonitor.user_left(channel_name, user_id)
+    Repo.delete_all ChessGame
     :ok
   end
 
@@ -54,5 +63,27 @@ defmodule ElixirChess.ChessGameChannel do
     Regex.match?(~r/\A[a-z0-9]+-[a-z0-9]+\z/, channel_name) &&
       socket.assigns.current_user.username in usernames &&
       usernames == Enum.sort(usernames)
+  end
+
+  defp find_game_from_channel_name("chess:game:" <> channel_name) do
+    IO.inspect(channel_name)
+    user_ids = Repo.all from u in User,
+      where:  u.username in ^String.split(channel_name, "-"),
+      select: u.id
+    IO.inspect(user_ids)
+    (from g in ChessGame, where:
+      g.black_player_id in ^user_ids and
+      g.white_player_id in ^user_ids and
+      g.finished == false)
+    |> Repo.all
+    |> List.first
+  end
+
+  defp add_move(history, new_move) do
+    if !history || history == "" do
+      new_move
+    else
+      history <> "," <> new_move
+    end
   end
 end

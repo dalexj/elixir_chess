@@ -3,7 +3,7 @@ import {Socket} from 'deps/phoenix/web/static/js/phoenix';
 
 const startingBoardState = 'a8:bR,b8:bN,c8:bB,d8:bQ,e8:bK,f8:bB,g8:bN,h8:bR,a7:bP,b7:bP,c7:bP,d7:bP,e7:bP,f7:bP,g7:bP,h7:bP,a2:wP,b2:wP,c2:wP,d2:wP,e2:wP,f2:wP,g2:wP,h2:wP,a1:wR,b1:wN,c1:wB,d1:wQ,e1:wK,f1:wB,g1:wN,h1:wR';
 
-let itWasMeMoving = false;
+let overrideOnChange = false;
 let BoardHelper = {
   init(opts) {
     this.board = ChessBoard('chessboard', {
@@ -11,11 +11,10 @@ let BoardHelper = {
       position: this.parseBoardState(startingBoardState),
       draggable: true,
       onChange: function(board1, board2) {
-        if(itWasMeMoving) {
-          itWasMeMoving = false;
+        if(overrideOnChange) {
+          overrideOnChange = false;
           return;
         }
-        itWasMeMoving = true;
         // find the move that was made and send it to the server
         var move = _.union(_.keys(board1), _.keys(board2)) .filter(function(key) {
           return board1[key] !== board2[key];
@@ -34,8 +33,8 @@ let BoardHelper = {
       }
     });
   },
-  setPosition(position) {
-    this.board.setPosition(position);
+  update(boardState) {
+    this.board.position(this.parseBoardState(boardState));
   },
   parseBoardState(boardState) {
     return boardState.split(',').reduce(function(pieces, data) {
@@ -135,7 +134,7 @@ const ParentComponent = React.createClass({
     });
     BoardHelper.init({
       onMove(move) {
-        component.state.gameChannelsConnected[0].channel.push('make_move', move);
+        component.state.gameChannelsConnected[0].channel.push('make_move', {move: move});
       },
     });
     this.setState({channel: channel, socket: socket});
@@ -266,6 +265,10 @@ const ParentComponent = React.createClass({
       _.find(component.state.gameChannelsConnected, {channel: channel}).over = true;
       channel.leave();
       component.setState();
+    });
+    channel.on('game_update', function(payload) {
+      overrideOnChange = true;
+      BoardHelper.update(payload.current_board);
     });
     const invites = this.state.invites.filter(function(invite) {
       return invite !== name;
