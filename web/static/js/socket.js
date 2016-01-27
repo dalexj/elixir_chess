@@ -14,7 +14,6 @@ let BoardHelper = {
           return 'snapback';
         }
         const move = [moveStart, moveEnd].join('-');
-        console.log(move);
         if(opts.onMove) {
           opts.onMove(move);
         }
@@ -40,46 +39,12 @@ window.BoardHelper = BoardHelper;
 
 const ChessGame = React.createClass({
   render() {
-    const channel = this.props.channel;
     return (
       <div>
         <h1>hello world</h1>
         <div id="chessboard" style={{ width: "500px"}}></div>
       </div>
     );
-    // if(channel.archived) {
-    //   return (
-    //       Game with {channel.opponent} - Archived
-    //   );
-    // } else if(channel.over && _.includes(this.state.invites, channel.opponent)) {
-    //   return (
-    //     <li>
-    //       Game with {channel.opponent} - Game over
-    //       <div className="btn btn-default" onClick={this.acceptInvite.bind(this, channel.opponent)}>
-    //         Accept Rematch
-    //       </div>
-    //     </li>
-    //   );
-    // } else if(channel.over) {
-    //   return (
-    //     <li>
-    //       Game with {channel.opponent} - Game over
-    //       <div className="btn btn-default" onClick={this.challengeUser.bind(this, channel.opponent)}>
-    //         Rematch
-    //       </div>
-    //     </li>
-    //   );
-    // } else if(channel.started) {
-    //   return (
-    //     <li>
-    //       Game with {channel.opponent}
-    //       <div className="btn btn-default" onClick={this.endgame.bind(this, channel.channel)}>
-    //         End the game
-    //       </div>
-    //     </li>
-    //   );
-    // }
-    // return <li>Game with {channel.opponent} - Pending invitation</li>;
   },
 });
 
@@ -119,6 +84,9 @@ const ParentComponent = React.createClass({
 
     channel.join().receive('ok', function(response) {
       component.setState({myUsername: response.username});
+      response.users.forEach(function(username) {
+        component.joinGameWith(username);
+      });
     });
     BoardHelper.init({
       onMove(move) {
@@ -230,7 +198,7 @@ const ParentComponent = React.createClass({
         chan.archived = true;
       }
     });
-    gameChannelsConnected = gameChannelsConnected.concat({
+    const chan = {
       topic:    channel.topic,
       channel:  channel,
       opponent: name,
@@ -239,9 +207,18 @@ const ParentComponent = React.createClass({
       started: false,
       archived: false,
       color: 'white',
+    };
+    gameChannelsConnected = gameChannelsConnected.concat(chan);
+    channel.on('game_continue', function(payload) {
+      chan.started = true;
+      chan.color = payload[component.state.myUsername];
+      if(chan.color === 'black') {
+        BoardHelper.flip();
+      }
+      component.setState();
+      BoardHelper.update(payload.current_board);
     });
     channel.on('game_start', function(payload) {
-      const chan = _.find(component.state.gameChannelsConnected, {channel: channel});
       chan.started = true;
       chan.color = payload[component.state.myUsername];
       if(chan.color === 'black') {

@@ -1,11 +1,13 @@
 defmodule ElixirChess.ChessChannel do
   use ElixirChess.Web, :channel
-  alias ElixirChess.ChannelMonitor
+  alias ElixirChess.{ChannelMonitor, ChessGame, Repo, User}
 
   def join("chess:lobby", _payload, socket) do
+    others_users_im_in_game_with = find_other_users_in_game_with(socket.assigns.current_user.username)
+
     current_user = socket.assigns.current_user
     send self, {:after_join, ChannelMonitor.user_joined("lobby", current_user)["lobby"]}
-    {:ok, %{username: current_user.username}, socket}
+    {:ok, %{username: current_user.username, users: others_users_im_in_game_with}, socket}
   end
 
   def terminate(_reason, socket) do
@@ -36,5 +38,21 @@ defmodule ElixirChess.ChessChannel do
   defp get_usernames(nil), do: []
   defp get_usernames(users) do
     Enum.map users, &(&1.username)
+  end
+
+  defp find_other_users_in_game_with(current_username) do
+    query = from g in ChessGame,
+      join:  u in User,
+      on:    u.id == g.black_player_id or u.id == g.white_player_id,
+      where: u.username == ^current_username and g.finished == false,
+      distinct: true,
+      preload: [:white_player, :black_player]
+
+    query
+    |> Repo.all
+    |> Enum.map(&([ &1.white_player.username, &1.black_player.username ]))
+    |> List.flatten
+    |> Enum.uniq
+    |> Enum.reject(&(&1 == current_username))
   end
 end

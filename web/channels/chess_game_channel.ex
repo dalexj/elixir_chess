@@ -31,6 +31,8 @@ defmodule ElixirChess.ChessGameChannel do
 
   def handle_in("endgame", _payload, socket) do
     broadcast! socket, "game_over", %{message: "testing"}
+    game = find_game_from_channel_name(socket.assigns.channel_name)
+    Repo.update ChessGame.changeset(game, %{finished: true})
     {:noreply, socket}
   end
 
@@ -43,18 +45,26 @@ defmodule ElixirChess.ChessGameChannel do
     user_id = socket.assigns.current_user.id
     channel_name = socket.assigns.channel_name
     ChannelMonitor.user_left(channel_name, user_id)
-    Repo.delete_all ChessGame
     :ok
   end
 
   def handle_info({:after_join, users}, socket) do
-    if length(users) == 2 do
-      [user1, user2] = Enum.shuffle users # randomize white/black
-      Repo.insert ChessGame.changeset(%ChessGame{}, %{black_player_id: user1.id, white_player_id: user2.id})
-      payload = %{}
+    game = find_game_from_channel_name(socket.assigns.channel_name)
+    if game do
+      {user1, user2} = {game.black_player, game.white_player}
+      payload = %{ current_board: ChessGame.from_history(game.move_history) }
         |> Map.put(user1.username, "black")
         |> Map.put(user2.username, "white")
-      broadcast! socket, "game_start", payload
+      push socket, "game_continue", payload
+    else
+      if length(users) == 2 do
+        [user1, user2] = Enum.shuffle users # randomize white/black
+        Repo.insert ChessGame.changeset(%ChessGame{}, %{black_player_id: user1.id, white_player_id: user2.id})
+        payload = %{}
+          |> Map.put(user1.username, "black")
+          |> Map.put(user2.username, "white")
+        broadcast! socket, "game_start", payload
+      end
     end
     {:noreply, socket}
   end
@@ -75,7 +85,8 @@ defmodule ElixirChess.ChessGameChannel do
     (from g in ChessGame, where:
       g.black_player_id in ^user_ids and
       g.white_player_id in ^user_ids and
-      g.finished == false)
+      g.finished == false,
+      preload: [:white_player, :black_player])
     |> Repo.all
     |> List.first
   end
