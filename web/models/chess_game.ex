@@ -51,6 +51,7 @@ defmodule ElixirChess.ChessGame do
     |> Enum.join(",")
   end
 
+  def from_history(nil), do: default_board
   def from_history(history) do
     default_board
     |> String.split(",")
