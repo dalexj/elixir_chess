@@ -18,8 +18,9 @@ defmodule ElixirChess.Web do
 
   def model do
     quote do
-      use Ecto.Model
+      use Ecto.Schema
 
+      import Ecto
       import Ecto.Changeset
       import Ecto.Query, only: [from: 1, from: 2]
     end
@@ -31,6 +32,7 @@ defmodule ElixirChess.Web do
       plug :put_current_user
 
       alias ElixirChess.Repo
+      import Ecto
       import Ecto.Model
       import Ecto.Query, only: [from: 1, from: 2]
 
@@ -68,6 +70,7 @@ defmodule ElixirChess.Web do
       use Phoenix.Channel
 
       alias ElixirChess.Repo
+      import Ecto
       import Ecto.Model
       import Ecto.Query, only: [from: 1, from: 2]
     end
