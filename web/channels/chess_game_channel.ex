@@ -1,9 +1,6 @@
 defmodule ElixirChess.ChessGameChannel do
   use ElixirChess.Web, :channel
-  alias ElixirChess.ChannelMonitor
-  alias ElixirChess.ChessGame
-  alias ElixirChess.Repo
-  alias ElixirChess.User
+  alias ElixirChess.{ChannelMonitor, ChessGame, Repo, User}
   import Ecto.Query, only: [from: 2]
 
   def join(room_name = "chess:game:" <> usernames, _payload, socket) do
@@ -20,11 +17,15 @@ defmodule ElixirChess.ChessGameChannel do
   def handle_in("make_move", payload, socket) do
     game = find_game_from_channel_name(socket.assigns.channel_name)
     moves = add_move(game.move_history, payload["move"])
-    {:ok, updated_game} = game
+    result = game
       |> ChessGame.changeset(%{move_history: moves})
       |> Repo.update
-    current_board = ChessGame.from_history updated_game.move_history
-    broadcast! socket, "game_update", %{current_board: current_board}
+    case result do
+      {:ok, updated_game} ->
+        current_board = ChessGame.from_history updated_game.move_history
+        broadcast! socket, "game_update", %{current_board: current_board}
+      {:error, _} -> nil
+    end
     {:noreply, socket}
   end
 

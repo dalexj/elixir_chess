@@ -22,6 +22,14 @@ defmodule ElixirChess.ChessGame do
   def changeset(model, params \\ :empty) do
     model
     |> cast(params, @required_fields, @optional_fields)
+    |> validate_change(:move_history, &validate_move_history/2)
+  end
+
+  defp validate_move_history(:move_history, value) do
+    case from_history(value) do
+      {:error, _ } -> [move_history: "is invalid"]
+      _ -> []
+    end
   end
 
   # pieces are in format "#{color}#{type}"

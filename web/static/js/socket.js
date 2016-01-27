@@ -3,34 +3,22 @@ import {Socket} from 'deps/phoenix/web/static/js/phoenix';
 
 const startingBoardState = 'a8:bR,b8:bN,c8:bB,d8:bQ,e8:bK,f8:bB,g8:bN,h8:bR,a7:bP,b7:bP,c7:bP,d7:bP,e7:bP,f7:bP,g7:bP,h7:bP,a2:wP,b2:wP,c2:wP,d2:wP,e2:wP,f2:wP,g2:wP,h2:wP,a1:wR,b1:wN,c1:wB,d1:wQ,e1:wK,f1:wB,g1:wN,h1:wR';
 
-let overrideOnChange = false;
 let BoardHelper = {
   init(opts) {
     this.board = ChessBoard('chessboard', {
       pieceTheme: 'images/chesspieces/wikipedia/{piece}.png',
       position: this.parseBoardState(startingBoardState),
       draggable: true,
-      onChange: function(board1, board2) {
-        if(overrideOnChange) {
-          overrideOnChange = false;
-          return;
+      onDrop(moveStart, moveEnd) {
+        if(moveStart === moveEnd) {
+          return 'snapback';
         }
-        // find the move that was made and send it to the server
-        var move = _.union(_.keys(board1), _.keys(board2)) .filter(function(key) {
-          return board1[key] !== board2[key];
-        }).sort(function(square1, square2) {
-          if(board1[square1] && board1[square1] === board2[square2]) {
-            return -1;
-          } else if(board1[square2] && board1[square2] === board2[square1]) {
-            return 1;
-          }
-        }).join('-');
-
+        const move = [moveStart, moveEnd].join('-');
         console.log(move);
         if(opts.onMove) {
           opts.onMove(move);
         }
-      }
+      },
     });
   },
   update(boardState) {
@@ -267,7 +255,6 @@ const ParentComponent = React.createClass({
       component.setState();
     });
     channel.on('game_update', function(payload) {
-      overrideOnChange = true;
       BoardHelper.update(payload.current_board);
     });
     const invites = this.state.invites.filter(function(invite) {
