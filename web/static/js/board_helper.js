@@ -2,6 +2,20 @@
 
 const pieceImagePath = 'images/chesspieces/wikipedia/{piece}.png';
 
+const ChessGame = React.createClass({
+  render() {
+    const styles = {};
+    if(!this.props.shouldRender) {
+      styles.display = 'none';
+    }
+    return (
+      <div style={styles}>
+        <div id="chessboard" style={{ width: '500px' }}></div>
+      </div>
+    );
+  },
+});
+
 function BoardHelper(options) {
   options = options || {};
   const helper = this;
@@ -10,7 +24,7 @@ function BoardHelper(options) {
     pieceTheme: pieceImagePath,
     position: this.parseBoardState(startingBoardState),
     draggable: true,
-    this.onDrop.bind(this),
+    onDrop: this.onDrop.bind(this),
   });
 }
 
@@ -25,7 +39,11 @@ BoardHelper.prototype = {
     }
   },
   update(boardState, animate) {
-    this.board.position(this.parseBoardState(boardState), animate);
+    if(boardState) {
+      this.board.position(this.parseBoardState(boardState), animate);
+    } else {
+      this.board.position('start');
+    }
   },
   parseBoardState(boardState) {
     return boardState.split(',').reduce(function(pieces, data) {
@@ -40,4 +58,4 @@ BoardHelper.prototype = {
 };
 
 // window.BoardHelper = BoardHelper;
-export default BoardHelper
+export default BoardHelper;

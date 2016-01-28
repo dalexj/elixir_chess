@@ -1,6 +1,8 @@
 /* jshint esnext: true */
 import UserList from './user_list';
+import ChannelList from './channel_list';
 import BoardHelper from './board_helper';
+import ChessSocket from './chess_socket';
 
 var helper = new BoardHelper({
   onMove: function() {},
@@ -10,12 +12,11 @@ var helper = new BoardHelper({
 const ParentComponent = React.createClass({
   getInitialState() {
     return {
-      myUsername: null,
       users: [],
-      channel: null,
-      socket: null,
+      myUsername: null,
+      chessSocket: null,
       invites: [],
-      gameChannelsConnected: [],
+      gameChannels: [],
       selectedChannel: null,
     };
   },
@@ -30,24 +31,6 @@ const ParentComponent = React.createClass({
       console.log('not logged in');
       return;
     }
-    const socket = new Socket('/socket', {params: {token: this.getUserToken()}});
-    socket.connect();
-
-    const channel = socket.channel('chess:lobby');
-    channel.on('lobby_update', function(payload) {
-      component.setState({ users: payload.users });
-      component.disconnectFromOfflineUsers();
-    });
-    channel.on('chess_invite', function(payload) {
-      component.setState({ invites: component.state.invites.concat(payload.username) });
-    });
-
-    channel.join().receive('ok', function(response) {
-      component.setState({myUsername: response.username});
-      response.users.forEach(function(username) {
-        component.joinGameWith(username);
-      });
-    });
     BoardHelper.init({
       onMove(move) {
         const game = getSelectedChannel();
@@ -69,11 +52,7 @@ const ParentComponent = React.createClass({
           <h2>Current Users</h2>
           <UserList users={this.state.users} myUsername={this.state.myUsername} invites={this.state.invites} />
           <h2>Games</h2>
-          <ul>
-            {this.state.gameChannelsConnected.map(function(channel, index) {
-              return component.renderChannel(channel, index);
-            })}
-          </ul>
+          <ChannelList channels={this.state.gameChannels}/>
         </div>
         <div className="col-md-8">
           <ChessGame channel={this.state.currentChannel} shouldRender={!!this.state.selectedChannel} />
@@ -81,47 +60,6 @@ const ParentComponent = React.createClass({
 
       </div>
     );
-  },
-  renderChannel(channel, index) {
-    if(channel.archived) {
-      return (
-        <li>
-          <div className="btn btn-default" onClick={this.selectChannel.bind(this, index)}>select</div>
-          Game with {channel.opponent} - Archived
-        </li>
-      );
-    } else if(channel.over && _.includes(this.state.invites, channel.opponent)) {
-      return (
-        <li>
-          <div className="btn btn-default" onClick={this.selectChannel.bind(this, index)}>select</div>
-          Game with {channel.opponent} - Game over
-          <div className="btn btn-default" onClick={this.acceptInvite.bind(this, channel.opponent)}>
-            Accept Rematch
-          </div>
-        </li>
-      );
-    } else if(channel.over) {
-      return (
-        <li>
-          <div className="btn btn-default" onClick={this.selectChannel.bind(this, index)}>select</div>
-          Game with {channel.opponent} - Game over
-          <div className="btn btn-default" onClick={this.challengeUser.bind(this, channel.opponent)}>
-            Rematch
-          </div>
-        </li>
-      );
-    } else if(channel.started) {
-      return (
-        <li>
-          <div className="btn btn-default" onClick={this.selectChannel.bind(this, index)}>select</div>
-          Game with {channel.opponent}
-          <div className="btn btn-default" onClick={this.endgame.bind(this, channel.channel)}>
-            End the game
-          </div>
-        </li>
-      );
-    }
-    return <li>Game with {channel.opponent} - Pending invitation</li>;
   },
   renderUser(user) {
     if(user === this.state.myUsername) {
@@ -171,7 +109,6 @@ const ParentComponent = React.createClass({
       }
     });
     const chan = {
-      topic:    channel.topic,
       channel:  channel,
       opponent: name,
 
