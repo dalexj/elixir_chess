@@ -105,97 +105,6 @@ const ParentComponent = React.createClass({
   getSelectedChannel() {
     return this.state.selectedChannel !== null && this.state.gameChannelsConnected[this.state.selectedChannel];
   },
-  render() {
-    const component = this;
-    return(
-      <div>
-        <div className="col-md-4">
-          <h2>Current Users</h2>
-          <ul>
-            {this.state.users.map(function(user) {
-              return component.renderUser(user);
-            })}
-          </ul>
-          <h2>Games</h2>
-          <ul>
-            {this.state.gameChannelsConnected.map(function(channel, index) {
-              return component.renderChannel(channel, index);
-            })}
-          </ul>
-        </div>
-        <div className="col-md-8">
-          <ChessGame channel={this.state.currentChannel} shouldRender={!!this.state.selectedChannel} />
-        </div>
-
-      </div>
-    );
-  },
-  renderChannel(channel, index) {
-    if(channel.archived) {
-      return (
-        <li>
-          <div className="btn btn-default" onClick={this.selectChannel.bind(this, index)}>select</div>
-          Game with {channel.opponent} - Archived
-        </li>
-      );
-    } else if(channel.over && _.includes(this.state.invites, channel.opponent)) {
-      return (
-        <li>
-          <div className="btn btn-default" onClick={this.selectChannel.bind(this, index)}>select</div>
-          Game with {channel.opponent} - Game over
-          <div className="btn btn-default" onClick={this.acceptInvite.bind(this, channel.opponent)}>
-            Accept Rematch
-          </div>
-        </li>
-      );
-    } else if(channel.over) {
-      return (
-        <li>
-          <div className="btn btn-default" onClick={this.selectChannel.bind(this, index)}>select</div>
-          Game with {channel.opponent} - Game over
-          <div className="btn btn-default" onClick={this.challengeUser.bind(this, channel.opponent)}>
-            Rematch
-          </div>
-        </li>
-      );
-    } else if(channel.started) {
-      return (
-        <li>
-          <div className="btn btn-default" onClick={this.selectChannel.bind(this, index)}>select</div>
-          Game with {channel.opponent}
-          <div className="btn btn-default" onClick={this.endgame.bind(this, channel.channel)}>
-            End the game
-          </div>
-        </li>
-      );
-    }
-    return <li>Game with {channel.opponent} - Pending invitation</li>;
-  },
-  renderUser(user) {
-    if(user === this.state.myUsername) {
-      return <li>{user}</li>;
-    } else if(this.inGameWith(user)) {
-      return <li>{user} (currently in game with)</li>;
-    } else if(this.state.invites.indexOf(user) > -1) {
-      return (
-        <li>
-          {user}
-          <div style={{marginLeft: "20px"}} className="btn btn-default" onClick={this.acceptInvite.bind(this, user)}>
-            Accept Invite
-          </div>
-        </li>
-      );
-    } else {
-      return (
-        <li>
-          {user}
-          <div style={{marginLeft: "20px"}} className="btn btn-default" onClick={this.challengeUser.bind(this, user)}>
-            Challenge
-          </div>
-        </li>
-      );
-    }
-  },
   acceptInvite(name) {
     this.joinGameWith(name);
   },
@@ -290,4 +199,4 @@ const ParentComponent = React.createClass({
   },
 });
 
-export default ParentComponent;
+export default ChessSocket;

@@ -19,7 +19,7 @@ import 'deps/phoenix_html/web/static/js/phoenix_html';
 // Local files can be imported directly using relative
 // paths "./socket" or full ones "web/static/js/socket".
 
-import ParentComponent from './socket';
+import ParentComponent from './parent_component';
 
 if($('#put-react-here')[0]) {
   React.render(<ParentComponent />, document.getElementById('put-react-here'));
