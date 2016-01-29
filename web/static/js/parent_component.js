@@ -4,42 +4,64 @@ import ChannelList from './channel_list';
 import BoardHelper from './board_helper';
 import ChessSocket from './chess_socket';
 
-var helper = new BoardHelper({
-  onMove: function() {},
-  domID: 'chessboard'
+const ChessGame = React.createClass({
+  render() {
+    const styles = {};
+    if(!this.props.shouldRender) {
+      styles.display = 'none';
+    }
+    return (
+      <div style={styles}>
+        <div id="chessboard" style={{ width: '500px' }}></div>
+      </div>
+    );
+  },
 });
 
 const ParentComponent = React.createClass({
   getInitialState() {
     return {
-      users: [],
-      myUsername: null,
-      chessSocket: null,
-      invites: [],
-      gameChannels: [],
       selectedChannel: null,
+      chessSocket: null,
+      myUsername: null,
+      gameChannels: [],
+      invites: [],
+      users: [],
+      boardHelper: null,
     };
   },
 
   getUserToken() {
     return $('meta[name=channel_token]').attr('content');
   },
-
+  readStateFromSocket() {
+    this.setState({
+      users: this.chessSocket.users,
+      invites: this.chessSocket.invites,
+      myUsername: this.chessSocket.myUsername,
+    });
+  },
+  onSocketUpdate() {
+    this.readStateFromSocket();
+  },
   componentDidMount() {
     const component = this;
     if(!this.getUserToken()) {
       console.log('not logged in');
       return;
     }
-    BoardHelper.init({
+    const boardHelper = new BoardHelper({
+      domID: 'chessboard',
       onMove(move) {
-        const game = getSelectedChannel();
+        const game = component.state.gameChannels[0];
         if(game && !game.over) {
           game.channel.push('make_move', {move: move});
         }
       },
     });
-    this.setState({channel: channel, socket: socket});
+    const socket = new ChessSocket();
+    socket.addListener(this.onSocketUpdate);
+    this.setState({socket: socket, boardHelper: boardHelper});
   },
   getSelectedChannel() {
     return this.state.selectedChannel !== null && this.state.gameChannelsConnected[this.state.selectedChannel];

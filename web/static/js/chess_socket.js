@@ -1,5 +1,5 @@
 /* jshint esnext: true */
-import {Socket} from 'deps/phoenix/web/static/js/phoenix';
+import {Socket} from 'phoenix';
 
 function Game(socket, opponent, myUsername, parent) {
   this.opponent = opponent;
@@ -89,8 +89,8 @@ ChessSocket.prototpye = {
   set(values) {
     // similar to react setState
     const chessSocket = this;
-    ['users', 'invites', 'myUsername'].forEach(function(key) {
-      chessSocket[key] = values[key];
+    ['users', 'invites', 'myUsername'].forEach(function(validVarName) {
+      chessSocket[validVarName] = values[validVarName];
     });
     this.triggerChange();
   },

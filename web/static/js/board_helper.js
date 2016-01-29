@@ -2,27 +2,13 @@
 
 const pieceImagePath = 'images/chesspieces/wikipedia/{piece}.png';
 
-const ChessGame = React.createClass({
-  render() {
-    const styles = {};
-    if(!this.props.shouldRender) {
-      styles.display = 'none';
-    }
-    return (
-      <div style={styles}>
-        <div id="chessboard" style={{ width: '500px' }}></div>
-      </div>
-    );
-  },
-});
-
 function BoardHelper(options) {
   options = options || {};
   const helper = this;
   this.onMove = options.onMove;
   this.board = ChessBoard(options.domID || 'chessboard', {
     pieceTheme: pieceImagePath,
-    position: this.parseBoardState(startingBoardState),
+    position: 'start',
     draggable: true,
     onDrop: this.onDrop.bind(this),
   });
