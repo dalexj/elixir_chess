@@ -15,7 +15,7 @@ function Game(socket, opponent, myUsername, parent) {
   this.create(socket);
 }
 
-Game.prototpye = {
+Game.prototype = {
   leave() {
     this.channel.leave();
   },
@@ -35,10 +35,10 @@ Game.prototpye = {
     const channel = socket.channel(this.getGameRoomName());
     channel.on('game_continue', function(payload) {
       _this.board = payload.current_board;
-      _this.start();
+      _this.start(payload);
     });
     channel.on('game_start', function(payload) {
-      _this.start();
+      _this.start(payload);
     });
     channel.on('game_over', function(payload) {
       _this.over = true;
@@ -74,11 +74,12 @@ function ChessSocket() {
   this.joinLobby();
 }
 
-ChessSocket.prototpye = {
+ChessSocket.prototype = {
   addListener(func) {
     this._listeners.push(func);
   },
   triggerChange() {
+    console.log('triggerChange');
     this._listeners.forEach(function(listener) {
       listener();
     });
@@ -89,7 +90,7 @@ ChessSocket.prototpye = {
   set(values) {
     // similar to react setState
     const chessSocket = this;
-    ['users', 'invites', 'myUsername'].forEach(function(validVarName) {
+    _.intersection(_.keys(values), ['users', 'invites', 'myUsername']).forEach(function(validVarName) {
       chessSocket[validVarName] = values[validVarName];
     });
     this.triggerChange();
@@ -102,7 +103,7 @@ ChessSocket.prototpye = {
       chessSocket.set({ invites: chessSocket.invites.concat(payload.username) });
     });
     this.lobbyChannel.on('lobby_update', function(payload) {
-      chessSocket.set({ users: users });
+      chessSocket.set({ users: payload.users });
       chessSocket.disconnectFromOfflineUsers();
     });
     this.lobbyChannel.join().receive('ok', function(response) {
@@ -131,19 +132,22 @@ ChessSocket.prototpye = {
     this.lobbyChannel.push('chess_invite', {username: name});
     this.joinGameWith(name);
   },
-  inGameWith(user) {
-    return _.includes(_.map(this.gameChannels, 'opponent'), user);
-  },
   disconnectFromOfflineUsers() {
     const chessSocket = this;
-    const invites = _.intersection(this.state.invites, this.state.users);
-    const gameChannels = this.state.gameChannels.forEach(function(channel) {
+    const invites = _.intersection(this.invites, this.users);
+    const gameChannels = this.gameChannels.forEach(function(channel) {
       if(!channel.started && !_.includes(chessSocket.users, channel.opponent)) {
         channel.leave();
         channel.hidden = true;
       }
     });
     this.set({invites: invites, gameChannels: gameChannels});
+  },
+  acceptInvite(name) {
+    this.joinGameWith(name);
+  },
+  endGame(channel) {
+    channel.end();
   },
 };
 

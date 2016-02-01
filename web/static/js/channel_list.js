@@ -18,16 +18,14 @@ const ChannelList = React.createClass({
     if(channel.archived) {
       return (
         <li>
-          <div className="btn btn-default" onClick={this.selectChannel.bind(this, index)}>select</div>
           Game with {channel.opponent} - Archived
         </li>
       );
-    } else if(channel.over && _.includes(this.state.invites, channel.opponent)) {
+    } else if(channel.over && _.includes(this.props.invites, channel.opponent)) {
       return (
         <li>
-          <div className="btn btn-default" onClick={this.selectChannel.bind(this, index)}>select</div>
           Game with {channel.opponent} - Game over
-          <div className="btn btn-default" onClick={this.acceptInvite.bind(this, channel.opponent)}>
+          <div className="btn btn-default" onClick={this.props.chessSocket.acceptInvite.bind(this.props.chessSocket, channel.opponent)}>
             Accept Rematch
           </div>
         </li>
@@ -35,9 +33,8 @@ const ChannelList = React.createClass({
     } else if(channel.over) {
       return (
         <li>
-          <div className="btn btn-default" onClick={this.selectChannel.bind(this, index)}>select</div>
           Game with {channel.opponent} - Game over
-          <div className="btn btn-default" onClick={this.challengeUser.bind(this, channel.opponent)}>
+          <div className="btn btn-default" onClick={this.props.chessSocket.challengeUser.bind(this.props.chessSocket, channel.opponent)}>
             Rematch
           </div>
         </li>
@@ -45,9 +42,8 @@ const ChannelList = React.createClass({
     } else if(channel.started) {
       return (
         <li>
-          <div className="btn btn-default" onClick={this.selectChannel.bind(this, index)}>select</div>
           Game with {channel.opponent}
-          <div className="btn btn-default" onClick={this.endgame.bind(this, channel.channel)}>
+          <div className="btn btn-default" onClick={this.props.chessSocket.endGame.bind(this.props.chessSocket, channel.channel)}>
             End the game
           </div>
         </li>
