@@ -43,7 +43,7 @@ const ChannelList = React.createClass({
       return (
         <li>
           Game with {channel.opponent}
-          <div className="btn btn-default" onClick={this.props.chessSocket.endGame.bind(this.props.chessSocket, channel.channel)}>
+          <div className="btn btn-default" onClick={this.props.chessSocket.endGame.bind(this.props.chessSocket, channel)}>
             End the game
           </div>
         </li>

@@ -77,11 +77,9 @@ defmodule ElixirChess.ChessGameChannel do
   end
 
   defp find_game_from_channel_name("chess:game:" <> channel_name) do
-    IO.inspect(channel_name)
     user_ids = Repo.all from u in User,
       where:  u.username in ^String.split(channel_name, "-"),
       select: u.id
-    IO.inspect(user_ids)
     (from g in ChessGame, where:
       g.black_player_id in ^user_ids and
       g.white_player_id in ^user_ids and

@@ -79,7 +79,6 @@ ChessSocket.prototype = {
     this._listeners.push(func);
   },
   triggerChange() {
-    console.log('triggerChange');
     this._listeners.forEach(function(listener) {
       listener();
     });
