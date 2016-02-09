@@ -1,6 +1,5 @@
 /* jshint esnext: true */
 import UserList from './user_list';
-import ChannelList from './channel_list';
 import BoardHelper from './board_helper';
 import ChessSocket from './chess_socket';
 
@@ -21,10 +20,9 @@ const ChessGame = React.createClass({
 const ParentComponent = React.createClass({
   getInitialState() {
     return {
-      selectedChannel: null,
       chessSocket: null,
       myUsername: null,
-      gameChannels: [],
+      game: null,
       invites: [],
       users: [],
       boardHelper: null,
@@ -35,13 +33,13 @@ const ParentComponent = React.createClass({
       users: this.state.chessSocket.users,
       invites: this.state.chessSocket.invites,
       myUsername: this.state.chessSocket.myUsername,
-      gameChannels: this.state.chessSocket.gameChannels,
+      game: this.state.chessSocket.game,
     });
   },
   onSocketUpdate() {
     this.readStateFromSocket();
-    if(this.state.gameChannels[0]) {
-      this.state.boardHelper.update(this.state.gameChannels[0].board);
+    if(this.state.game) {
+      this.state.boardHelper.update(this.state.game.board);
     }
   },
   componentDidMount() {
@@ -49,9 +47,11 @@ const ParentComponent = React.createClass({
     const boardHelper = new BoardHelper({
       domID: 'chessboard',
       onMove(move) {
-        const game = component.state.gameChannels[0];
+        const game = component.state.game;
+        console.log(move, 1);
         if(game && !game.over) {
           game.channel.push('make_move', {move: move});
+          console.log(move);
         }
       },
     });
@@ -59,15 +59,19 @@ const ParentComponent = React.createClass({
     socket.addListener(this.onSocketUpdate);
     this.setState({chessSocket: socket, boardHelper: boardHelper});
   },
-  getOpponents() {
-    let channels = [];
-    if(this.state.chessSocket) {
-      channels = this.state.chessSocket.gameChannels || [];
+  renderEndGameButton() {
+    if(!this.state.game) {
+      return null;
+    } else if(this.state.game.over) {
+      return <h3>Game over</h3>;
     }
-    return _.map(channels, 'opponent');
+    return (
+      <div className="btn btn-default" onClick={this.state.game.end.bind(this.state.game)}>
+        End game with {this.state.game.opponent}
+      </div>
+    );
   },
   render() {
-    const component = this;
     return(
       <div>
         <div className="col-md-4">
@@ -76,14 +80,14 @@ const ParentComponent = React.createClass({
             users={this.state.users}
             myUsername={this.state.myUsername}
             invites={this.state.invites}
-            opponents={this.getOpponents()}
+            opponent={this.state.game && this.state.game.opponent}
             chessSocket={this.state.chessSocket}
+            game={this.state.game}
           />
-          <h2>Games</h2>
-          <ChannelList channels={this.state.gameChannels} chessSocket={this.state.chessSocket}/>
+          {this.renderEndGameButton()}
         </div>
         <div className="col-md-8">
-          <ChessGame channel={this.state.currentChannel} shouldRender={true} />
+          <ChessGame shouldRender={this.state.game} />
         </div>
       </div>
     );

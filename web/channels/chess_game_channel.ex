@@ -6,8 +6,8 @@ defmodule ElixirChess.ChessGameChannel do
   def join(room_name = "chess:game:" <> usernames, _payload, socket) do
     if authorized?(usernames, socket) do
       current_user = socket.assigns.current_user
-      send self, {:after_join, ChannelMonitor.user_joined(room_name, current_user)[room_name]}
       socket = assign(socket, :channel_name, room_name)
+      send self, {:after_join, ChannelMonitor.user_joined(room_name, current_user)[room_name]}
       {:ok, socket}
     else
       {:error, %{reason: "unauthorized"}}
@@ -44,7 +44,8 @@ defmodule ElixirChess.ChessGameChannel do
   def terminate(_reason, socket) do
     user_id = socket.assigns.current_user.id
     channel_name = socket.assigns.channel_name
-    ChannelMonitor.user_left(channel_name, user_id)
+    # broadcast! socket, "game_test", %{users: }
+    IO.inspect ChannelMonitor.user_left(channel_name, user_id)
     :ok
   end
 
@@ -66,6 +67,8 @@ defmodule ElixirChess.ChessGameChannel do
         broadcast! socket, "game_start", payload
       end
     end
+    IO.inspect("hi")
+    broadcast! socket, "game_test", %{users: Enum.map(users, &(&1.username))}
     {:noreply, socket}
   end
 

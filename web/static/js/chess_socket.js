@@ -6,8 +6,6 @@ function Game(socket, opponent, myUsername, parent) {
   this.myUsername = myUsername;
   this.gameOver = false;
   this.started = false;
-  this.archived = false;
-  this.hidden = false;
   this.color = 'white';
   this.board = null;
   this.parent = parent;
@@ -34,22 +32,34 @@ Game.prototype = {
     const _this = this;
     const channel = socket.channel(this.getGameRoomName());
     channel.on('game_continue', function(payload) {
+      console.log('game_continue');
       _this.board = payload.current_board;
       _this.start(payload);
     });
     channel.on('game_start', function(payload) {
+      console.log('game_start');
       _this.start(payload);
     });
     channel.on('game_over', function(payload) {
+      console.log('game_over');
       _this.over = true;
       channel.leave();
       _this.update();
     });
+    console.log('creating');
+    channel.on('game_test', function(payload) {
+      console.log('game_test', (new Date()).getTime(), JSON.stringify(payload));
+    });
     channel.on('game_update', function(payload) {
+      console.log('game_update');
       _this.board = payload.current_board;
       _this.update();
     });
-    channel.join();
+    console.log('joining', this.getGameRoomName(),(new Date()).getTime());
+    channel.join().receive('ok', function() {
+      console.log('ok');
+    });
+    console.log('done joining', (new Date()).getTime());
     this.channel = channel;
   },
   getGameRoomName() {
@@ -59,7 +69,7 @@ Game.prototype = {
 
 function ChessSocket() {
   this.users = [];
-  this.gameChannels = [];
+  this.game = null;
   this.invites = [];
   this.myUsername = null;
   this._listeners = [];
@@ -107,24 +117,19 @@ ChessSocket.prototype = {
     });
     this.lobbyChannel.join().receive('ok', function(response) {
       chessSocket.set({myUsername: response.username});
-      response.users.forEach(function(username) {
-        chessSocket.joinGameWith(username);
-      });
+      console.log(response);
+      setTimeout(function() {
+        if(response.user) {
+          chessSocket.joinGameWith(response.user);
+        }
+      }, 0);
     });
-  },
-  getSelectedChannel() {
-    return this.state.selectedChannel !== null && this.state.gameChannelsConnected[this.state.selectedChannel];
   },
   joinGameWith(name) {
-    this.gameChannels.forEach(function(conn) {
-      if(conn.opponent === name) {
-        conn.archived = true;
-      }
-    });
     const invites = _.reject(invites, function(invite) {
       return invite === name;
     });
-    this.gameChannels.push(new Game(this.socket, name, this.myUsername, this));
+    this.game = new Game(this.socket, name, this.myUsername, this);
     this.set({ invites: invites });
   },
   challengeUser(name) {
@@ -132,15 +137,16 @@ ChessSocket.prototype = {
     this.joinGameWith(name);
   },
   disconnectFromOfflineUsers() {
-    const chessSocket = this;
     const invites = _.intersection(this.invites, this.users);
-    const gameChannels = this.gameChannels.forEach(function(channel) {
-      if(!channel.started && !_.includes(chessSocket.users, channel.opponent)) {
-        channel.leave();
-        channel.hidden = true;
-      }
-    });
-    this.set({invites: invites, gameChannels: gameChannels});
+    let game = this.game;
+    if(!game) {
+      return;
+    }
+    if(!game.started && !!_.includes(this.users, game.opponent)) {
+      game.leave();
+      game = null;
+    }
+    this.set({invites: invites, game: game});
   },
   acceptInvite(name) {
     this.joinGameWith(name);

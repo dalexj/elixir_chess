@@ -43,5 +43,4 @@ BoardHelper.prototype = {
   },
 };
 
-// window.BoardHelper = BoardHelper;
 export default BoardHelper;
