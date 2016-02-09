@@ -38,8 +38,8 @@ BoardHelper.prototype = {
       return pieces;
     }, {});
   },
-  flip() {
-    this.board.flip();
+  setColor(color) {
+    this.board.orientation(color);
   },
 };
 

@@ -53,6 +53,9 @@ const ParentComponent = React.createClass({
       myUsername: this.state.chessSocket.myUsername,
       game: this.state.chessSocket.game,
     });
+    if(this.state.boardHelper && this.state.game) {
+      this.state.boardHelper.setColor(this.state.game.color);
+    }
   },
   onSocketUpdate() {
     this.readStateFromSocket();
