@@ -11,9 +11,27 @@ const ChessGame = React.createClass({
     }
     return (
       <div style={styles}>
-        <div id="chessboard" style={{ width: '500px' }}></div>
+        <div style={{display: 'inline'}}>
+          <div id="chessboard" style={{ width: '500px' }}></div>
+        </div>
+        {this.renderOverlay()}
       </div>
     );
+  },
+  renderOverlay() {
+    if(this.props.clickable) {
+      return null;
+    }
+    const styles = {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      width: '500px',
+      height: '500px',
+      marginLeft: '15px',
+      backgroundColor: 'rgba(0,0,0,0.5)',
+    };
+    return <div style={styles}></div>;
   },
 });
 
@@ -48,10 +66,8 @@ const ParentComponent = React.createClass({
       domID: 'chessboard',
       onMove(move) {
         const game = component.state.game;
-        console.log(move, 1);
         if(game && !game.over) {
           game.channel.push('make_move', {move: move});
-          console.log(move);
         }
       },
     });
@@ -60,7 +76,7 @@ const ParentComponent = React.createClass({
     this.setState({chessSocket: socket, boardHelper: boardHelper});
   },
   renderEndGameButton() {
-    if(!this.state.game) {
+    if(!this.state.game || !this.state.game.started) {
       return null;
     } else if(this.state.game.over) {
       return <h3>Game over</h3>;
@@ -87,7 +103,7 @@ const ParentComponent = React.createClass({
           {this.renderEndGameButton()}
         </div>
         <div className="col-md-8">
-          <ChessGame shouldRender={this.state.game} />
+          <ChessGame shouldRender={this.state.game} clickable={this.state.game && this.state.game.started} />
         </div>
       </div>
     );

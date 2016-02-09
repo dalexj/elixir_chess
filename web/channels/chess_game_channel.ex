@@ -44,8 +44,7 @@ defmodule ElixirChess.ChessGameChannel do
   def terminate(_reason, socket) do
     user_id = socket.assigns.current_user.id
     channel_name = socket.assigns.channel_name
-    # broadcast! socket, "game_test", %{users: }
-    IO.inspect ChannelMonitor.user_left(channel_name, user_id)
+    ChannelMonitor.user_left(channel_name, user_id)
     :ok
   end
 
@@ -67,8 +66,6 @@ defmodule ElixirChess.ChessGameChannel do
         broadcast! socket, "game_start", payload
       end
     end
-    IO.inspect("hi")
-    broadcast! socket, "game_test", %{users: Enum.map(users, &(&1.username))}
     {:noreply, socket}
   end
 

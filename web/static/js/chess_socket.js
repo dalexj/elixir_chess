@@ -32,34 +32,24 @@ Game.prototype = {
     const _this = this;
     const channel = socket.channel(this.getGameRoomName());
     channel.on('game_continue', function(payload) {
-      console.log('game_continue');
       _this.board = payload.current_board;
       _this.start(payload);
     });
     channel.on('game_start', function(payload) {
-      console.log('game_start');
       _this.start(payload);
     });
     channel.on('game_over', function(payload) {
-      console.log('game_over');
       _this.over = true;
       channel.leave();
       _this.update();
     });
-    console.log('creating');
     channel.on('game_test', function(payload) {
-      console.log('game_test', (new Date()).getTime(), JSON.stringify(payload));
     });
     channel.on('game_update', function(payload) {
-      console.log('game_update');
       _this.board = payload.current_board;
       _this.update();
     });
-    console.log('joining', this.getGameRoomName(),(new Date()).getTime());
-    channel.join().receive('ok', function() {
-      console.log('ok');
-    });
-    console.log('done joining', (new Date()).getTime());
+    channel.join();
     this.channel = channel;
   },
   getGameRoomName() {
@@ -117,7 +107,6 @@ ChessSocket.prototype = {
     });
     this.lobbyChannel.join().receive('ok', function(response) {
       chessSocket.set({myUsername: response.username});
-      console.log(response);
       setTimeout(function() {
         if(response.user) {
           chessSocket.joinGameWith(response.user);
