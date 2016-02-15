@@ -3,7 +3,11 @@ defmodule ElixirChess.UserTest do
 
   alias ElixirChess.User
 
-  @valid_attrs %{crypted_password: "some content", username: "some content"}
+  @valid_attrs %{
+    password: "password",
+    password_confirmation: "password",
+    username: "johnsmith1"
+  }
   @invalid_attrs %{}
 
   test "changeset with valid attributes" do

@@ -69,7 +69,7 @@ defmodule ElixirChess.Web do
     quote do
       use Phoenix.Channel
 
-      alias ElixirChess.Repo
+      alias ElixirChess.{ChannelMonitor, ChessGame, Repo, User}
       import Ecto
       import Ecto.Model
       import Ecto.Query, only: [from: 1, from: 2]

@@ -3,7 +3,7 @@ defmodule ElixirChess.ChessGameTest do
 
   alias ElixirChess.ChessGame
 
-  @valid_attrs %{finished: true, move_history: "some content"}
+  @valid_attrs %{finished: false, move_history: "", white_player_id: 1, black_player_id: 1}
   @invalid_attrs %{}
 
   test "changeset with valid attributes" do

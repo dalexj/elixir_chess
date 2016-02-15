@@ -4,25 +4,33 @@ defmodule ElixirChess.ChessChannelTest do
   alias ElixirChess.ChessChannel
 
   setup do
-    {:ok, _, socket} =
-      socket("user_id", %{some: :assign})
-      |> subscribe_and_join(ChessChannel, "chess:lobby")
-
-    {:ok, socket: socket}
+    {:ok, user}  = create_user("alex")
+    {:ok, user2} = create_user("alex2")
+    {:ok, _game} = create_chess_game(user, user2)
+    {:ok, join_response, socket} =
+      socket("random_string_that_doesnt_matter?", %{current_user: user})
+        |> subscribe_and_join(ChessChannel, "chess:lobby")
+    {:ok, join_response2, socket2} =
+      socket("random_string_that_doesnt_matter?2", %{current_user: user2})
+        |> subscribe_and_join(ChessChannel, "chess:lobby")
+    on_exit fn ->
+      leave socket
+      leave socket2
+    end
+    {:ok, socket: socket, socket2: socket2, join_response: join_response, join_response2: join_response2}
   end
 
-  test "ping replies with status ok", %{socket: socket} do
-    ref = push socket, "ping", %{"hello" => "there"}
-    assert_reply ref, :ok, %{"hello" => "there"}
+  test "gets the current users in the channel" do
+    assert_broadcast "lobby_update", %{users: ["alex2", "alex"]}
   end
 
-  test "shout broadcasts to chess:lobby", %{socket: socket} do
-    push socket, "shout", %{"hello" => "all"}
-    assert_broadcast "shout", %{"hello" => "all"}
+  test "can invite another player", %{socket: socket} do
+    push socket, "chess_invite", %{"username" => "alex2"}
+    assert_push "chess_invite", %{username: "alex"}
   end
 
-  test "broadcasts are pushed to the client", %{socket: socket} do
-    broadcast_from! socket, "broadcast", %{"some" => "data"}
-    assert_push "broadcast", %{"some" => "data"}
+  test "sends the game youre currently in", %{join_response: join_response, join_response2: join_response2} do
+    assert join_response.user  == "alex2"
+    assert join_response2.user == "alex"
   end
 end

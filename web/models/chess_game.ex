@@ -58,8 +58,6 @@ defmodule ElixirChess.ChessGame do
     |> make_moves(String.split history, ",")
   end
 
-  # ElixirChess.ChessGame.from_history "e2-e4"
-
   defp make_moves(board, []), do: Enum.join board, ","
   defp make_moves(board, ["" | t]), do: make_moves(board, t)
   defp make_moves(board, [h | t]) do

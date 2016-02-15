@@ -1,6 +1,5 @@
 defmodule ElixirChess.ChessGameChannel do
   use ElixirChess.Web, :channel
-  alias ElixirChess.{ChannelMonitor, ChessGame, Repo, User}
   import Ecto.Query, only: [from: 2]
 
   def join(room_name = "chess:game:" <> usernames, _payload, socket) do

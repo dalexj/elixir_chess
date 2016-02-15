@@ -1,6 +1,5 @@
 defmodule ElixirChess.ChessChannel do
   use ElixirChess.Web, :channel
-  alias ElixirChess.{ChannelMonitor, ChessGame, Repo, User}
 
   def join("chess:lobby", _payload, socket) do
     user_im_in_game_with = get_user_in_game_with(socket.assigns.current_user.username)

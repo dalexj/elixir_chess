@@ -1,4 +1,4 @@
-  defmodule ElixirChess.ChannelMonitor do
+defmodule ElixirChess.ChannelMonitor do
   @moduledoc """
   copied from here:
   https://github.com/bigardone/phoenix-trello/blob/129847a6643e7d4ee72cc9ffe4bfca6408c7fe0b/lib/phoenix_trello/board_channel/monitor.ex
@@ -33,7 +33,8 @@
       nil ->
         state |> Map.put(channel, [user])
       users ->
-        state |> Map.put(channel, Enum.uniq([user | users]))
+        new_users = [user | users] |> Enum.uniq_by(&(&1.username))
+        Map.put(state, channel, new_users)
     end
 
     {:reply, new_state, new_state}

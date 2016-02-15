@@ -20,10 +20,21 @@ defmodule ElixirChess.ChannelCase do
       # Import conveniences for testing with channels
       use Phoenix.ChannelTest
 
-      alias ElixirChess.Repo
+      alias ElixirChess.{Repo, User, ChessGame}
       import Ecto.Model
       import Ecto.Query, only: [from: 2]
 
+      def create_user(username) do
+        %User{}
+        |> User.changeset(%{username: username, password: "passw0rd", password_confirmation: "passw0rd"})
+        |> Repo.insert
+      end
+
+      def create_chess_game(user1, user2) do
+        %ChessGame{}
+        |> ChessGame.changeset(%{black_player_id: user1.id, white_player_id: user2.id})
+        |> Repo.insert
+      end
 
       # The default endpoint for testing
       @endpoint ElixirChess.Endpoint
