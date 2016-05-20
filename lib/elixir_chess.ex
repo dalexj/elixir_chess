@@ -14,6 +14,7 @@ defmodule ElixirChess do
       # Here you could define other workers and supervisors as children
       # worker(ElixirChess.Worker, [arg1, arg2, arg3]),
       worker(ElixirChess.ChannelMonitor, [%{}]),
+      supervisor(ElixirChess.Presence, []),
     ]
 
     # See http://elixir-lang.org/docs/stable/elixir/Supervisor.html

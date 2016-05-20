@@ -1,19 +1,13 @@
 defmodule ElixirChess.ChessChannel do
   use ElixirChess.Web, :channel
+  alias ElixirChess.Presence
 
   def join("chess:lobby", _payload, socket) do
     user_im_in_game_with = get_user_in_game_with(socket.assigns.current_user.username)
 
     current_user = socket.assigns.current_user
-    send self, {:after_join, ChannelMonitor.user_joined("lobby", current_user)["lobby"]}
+    send self, :after_join
     {:ok, %{username: current_user.username, user: user_im_in_game_with}, socket}
-  end
-
-  def terminate(_reason, socket) do
-    user_id = socket.assigns.current_user.id
-    users = ChannelMonitor.user_left("lobby", user_id)["lobby"]
-    broadcast! socket, "lobby_update", %{users: get_usernames(users)}
-    :ok
   end
 
   def handle_in("chess_invite", %{"username" => username}, socket) do
@@ -24,13 +18,14 @@ defmodule ElixirChess.ChessChannel do
   intercept ["chess_invite"]
   def handle_out("chess_invite", %{"username" => username, "sender" => sender}, socket) do
     if socket.assigns.current_user.username == username do
-      push socket, "chess_invite", %{ username: sender}
+      push socket, "chess_invite", %{username: sender}
     end
     {:noreply, socket}
   end
 
-  def handle_info({:after_join, users}, socket) do
-    broadcast! socket, "lobby_update", %{ users: get_usernames(users) }
+  def handle_info(:after_join, socket) do
+    push socket, "presence_state", Presence.list(socket)
+    {:ok, _} = Presence.track(socket, socket.assigns.current_user.username, %{})
     {:noreply, socket}
   end
 

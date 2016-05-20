@@ -1,5 +1,5 @@
 /* jshint esnext: true */
-import {Socket} from 'phoenix';
+import {Socket, Presence} from 'phoenix';
 
 function Game(socket, opponent, myUsername, parent) {
   this.opponent = opponent;
@@ -101,10 +101,18 @@ ChessSocket.prototype = {
     this.lobbyChannel.on('chess_invite', function(payload) {
       chessSocket.set({ invites: chessSocket.invites.concat(payload.username) });
     });
-    this.lobbyChannel.on('lobby_update', function(payload) {
-      chessSocket.set({ users: payload.users });
-      chessSocket.disconnectFromOfflineUsers();
+
+    this.presence_state = {};
+    this.lobbyChannel.on('presence_state', state => {
+      Presence.syncState(this.presence_state, state)
+      this.syncPresence();
     });
+    // receive 'presence_diff' from server, containing join/leave events
+    this.lobbyChannel.on('presence_diff', diff => {
+      Presence.syncDiff(this.presence_state, diff)
+      this.syncPresence();
+    });
+
     this.lobbyChannel.join().receive('ok', function(response) {
       chessSocket.set({myUsername: response.username});
       setTimeout(function() {
@@ -113,6 +121,11 @@ ChessSocket.prototype = {
         }
       }, 0);
     });
+  },
+  syncPresence() {
+    var users = Presence.list(this.presence_state, name => name);
+    this.set({users: users});
+    this.disconnectFromOfflineUsers();
   },
   joinGameWith(name) {
     const invites = _.reject(invites, function(invite) {
