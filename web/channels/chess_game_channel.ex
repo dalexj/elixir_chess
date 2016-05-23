@@ -6,7 +6,7 @@ defmodule ElixirChess.ChessGameChannel do
     if authorized?(usernames, socket) do
       current_user = socket.assigns.current_user
       socket = assign(socket, :channel_name, room_name)
-      send self, {:after_join, ChannelMonitor.user_joined(room_name, current_user)[room_name]}
+      send self, :after_join
       {:ok, socket}
     else
       {:error, %{reason: "unauthorized"}}
@@ -35,19 +35,12 @@ defmodule ElixirChess.ChessGameChannel do
     {:noreply, socket}
   end
 
-  def handle_out(event, payload, socket) do
-    push socket, event, payload
-    {:noreply, socket}
-  end
+  intercept ["presence_diff"]
+  def handle_out("presence_diff", _payload, socket), do: {:noreply, socket}
 
-  def terminate(_reason, socket) do
-    user_id = socket.assigns.current_user.id
-    channel_name = socket.assigns.channel_name
-    ChannelMonitor.user_left(channel_name, user_id)
-    :ok
-  end
-
-  def handle_info({:after_join, users}, socket) do
+  def handle_info(:after_join, socket) do
+    {:ok, _} = Presence.track(socket, socket.assigns.current_user, %{})
+    users = socket |> Presence.list |> Map.keys
     game = find_game_from_channel_name(socket.assigns.channel_name)
     if game do
       {user1, user2} = {game.black_player, game.white_player}

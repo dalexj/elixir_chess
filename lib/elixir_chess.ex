@@ -13,7 +13,6 @@ defmodule ElixirChess do
       worker(ElixirChess.Repo, []),
       # Here you could define other workers and supervisors as children
       # worker(ElixirChess.Worker, [arg1, arg2, arg3]),
-      worker(ElixirChess.ChannelMonitor, [%{}]),
       supervisor(ElixirChess.Presence, []),
     ]
 
