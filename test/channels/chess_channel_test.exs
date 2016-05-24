@@ -20,10 +20,6 @@ defmodule ElixirChess.ChessChannelTest do
     {:ok, socket: socket, socket2: socket2, join_response: join_response, join_response2: join_response2}
   end
 
-  test "gets the current users in the channel" do
-    assert_broadcast "lobby_update", %{users: ["alex2", "alex"]}
-  end
-
   test "can invite another player", %{socket: socket} do
     push socket, "chess_invite", %{"username" => "alex2"}
     assert_push "chess_invite", %{username: "alex"}
